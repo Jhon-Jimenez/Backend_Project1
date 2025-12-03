@@ -1,3 +1,4 @@
+import "dotenv/config";
 import express from "express";
 import cors from "cors";
 import indexRoutes from "./routes/index.routes";
@@ -10,13 +11,20 @@ app.use(express.json());
 app.use("/api/v1", indexRoutes);
 
 app.use((req, res) => {
-    res.status(404).json({ message: "Ruta no encontrada" });
+    res.status(404).json({ 
+        status: "error",
+        message: "Ruta no encontrada" 
+    });
 });
+
+const PORT = process.env.PORT || 8080;
 
 dbConnect().then(() => {
     console.log("🔥 Conectado a MongoDB");
-});
-
-app.listen(8080, () => {
-    console.log("🚀 Servidor corriendo en el puerto 8080");
+    app.listen(PORT, () => {
+        console.log(`🚀 Servidor corriendo en el puerto ${PORT}`);
+    });
+}).catch((error) => {
+    console.error("❌ Error al iniciar la aplicación:", error);
+    process.exit(1);
 });
