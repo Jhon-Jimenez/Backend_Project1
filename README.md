@@ -1,11 +1,11 @@
-# 📚 Proyecto Backend – Sistema de Gestión de Biblioteca (Libros y Usuarios)
+# Proyecto Backend – Sistema de Gestión de Biblioteca (Libros y Usuarios)
 
 API RESTful desarrollada con **Node.js**, **Express**, **TypeScript** y **MongoDB**, cumpliendo los lineamientos del proyecto final de la asignatura.  
 Permite gestionar **usuarios**, **libros**, **reservas**, autenticación mediante **JWT** y control de permisos.
 
 ---
 
-## 📋 Requisitos Previos
+## Requisitos Previos
 
 - **Node.js** (versión 18 o superior)
 - **MongoDB** (instalado localmente o cuenta de MongoDB Atlas)
@@ -13,7 +13,7 @@ Permite gestionar **usuarios**, **libros**, **reservas**, autenticación mediant
 
 ---
 
-## 🚀 Tecnologías principales
+## Tecnologías principales
 
 - Node.js  
 - Express  
@@ -26,7 +26,7 @@ Permite gestionar **usuarios**, **libros**, **reservas**, autenticación mediant
 
 ---
 
-## 📁 Estructura del Proyecto
+## Estructura del Proyecto
 
 ```
 src/
@@ -40,11 +40,11 @@ src/
   server.ts      # Punto de entrada
 ```
 
-## 🔐 Autenticación
+## Autenticación
 
 El sistema usa JWT.
 
-## 📚 Endpoints principales
+## Endpoints principales
 
 ### Usuarios
 
@@ -100,7 +100,7 @@ Los permisos se manejan como roles en el array `roles` del usuario:
 - `USER` - Usuario básico (puede reservar libros)
 - `ADMIN` - Administrador (puede tener combinación de permisos)
 
-## ⚡ Instalación y Configuración
+## Instalación y Configuración
 
 ### 1. Clonar el repositorio
 
@@ -141,7 +141,7 @@ net start MongoDB
 
 ```
 
-## 🏃 Ejecución
+## Ejecución
 
 ### Modo desarrollo
 
@@ -167,7 +167,7 @@ npm start
 
 ---
 
-## 🧪 Pruebas
+## Pruebas
 
 ### Ejecutar pruebas unitarias
 
@@ -185,7 +185,7 @@ Los archivos de prueba se encuentran en `src/tests/` y prueban cada función del
 
 ---
 
-## 📝 Probar los Endpoints
+## Probar los Endpoints
 
 ### Autenticación
 
@@ -254,30 +254,9 @@ Authorization: Bearer <tu_token>
 - **Thunder Client** (extensión de VS Code)
 - **curl** - desde la terminal
 
-### Ejemplo con curl
-
-```bash
-# Registrar usuario
-curl -X POST http://localhost:8080/api/v1/users/register \
-  -H "Content-Type: application/json" \
-  -d '{"nombre":"Juan","email":"juan@test.com","password":"123456"}'
-
-# Login
-curl -X POST http://localhost:8080/api/v1/users/login \
-  -H "Content-Type: application/json" \
-  -d '{"email":"juan@test.com","password":"123456"}'
-
-# Listar libros (sin token)
-curl http://localhost:8080/api/v1/books
-
-# Obtener usuario (con token)
-curl http://localhost:8080/api/v1/users/{id} \
-  -H "Authorization: Bearer <token>"
-```
-
 ---
 
-## 🔑 Permisos y Roles
+## Permisos y Roles
 
 Para crear usuarios con permisos específicos, puedes actualizar el campo `roles` en MongoDB:
 
@@ -295,7 +274,7 @@ Para crear usuarios con permisos específicos, puedes actualizar el campo `roles
 
 ---
 
-## 📊 Ejemplos de Respuestas
+## Ejemplos de Respuestas
 
 ### Respuesta exitosa
 
@@ -318,6 +297,6 @@ Para crear usuarios con permisos específicos, puedes actualizar el campo `roles
 
 ---
 
-## 📄 Proyecto
+## Proyecto
 
 Gracias por revisar este proyecto académico.
