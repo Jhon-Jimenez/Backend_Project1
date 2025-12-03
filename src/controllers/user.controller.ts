@@ -96,17 +96,30 @@ export const getUser = async (req: AuthRequest, res: Response) => {
 
 /**
  * Update user (protected) - solo campos permitidos
+ * Un usuario solo puede ser modificado por el mismo, o por un usuario con permiso de modificar usuarios
  */
 export const updateUser = async (req: AuthRequest, res: Response) => {
     try {
         const id = req.params.id;
+        const userId = req.user?.id;
         const updates = { ...req.body };
 
-        // no permitir cambiar password aquí directamente (si quieres, crear endpoint dedicado)
+        // Verificar permisos: solo el mismo usuario o un usuario con permiso MODIFY_USERS puede modificar
+        const puedeModificar = id === userId || req.user?.roles.includes("MODIFY_USERS");
+
+        if (!puedeModificar) {
+            return res.status(403).json({ status: "error", message: "No tienes permisos para modificar este usuario" });
+        }
+
+        // no permitir cambiar password aquí directamente
         if (updates.password) delete updates.password;
+        // No permitir cambiar roles a menos que sea admin con permisos
+        if (updates.roles && !req.user?.roles.includes("MODIFY_USERS")) {
+            delete updates.roles;
+        }
 
         const user = await UserModel.findByIdAndUpdate(id, updates, { new: true }).select("-password");
-        if (!user) {
+        if (!user || !user.enabled) {
             return res.status(404).json({ status: "error", message: "Usuario no encontrado" });
         }
 
@@ -123,6 +136,13 @@ export const updateUser = async (req: AuthRequest, res: Response) => {
 export const deleteUser = async (req: AuthRequest, res: Response) => {
     try {
         const id = req.params.id;
+        const userId = req.user?.id;
+
+        // Solo el mismo usuario o un usuario con permiso DISABLE_USERS puede deshabilitar
+        if (id !== userId && !req.user?.roles.includes("DISABLE_USERS")) {
+            return res.status(403).json({ status: "error", message: "No tienes permisos para deshabilitar este usuario" });
+        }
+
         const user = await UserModel.findByIdAndUpdate(id, { enabled: false }, { new: true }).select("-password");
         if (!user) {
             return res.status(404).json({ status: "error", message: "Usuario no encontrado" });
@@ -131,5 +151,94 @@ export const deleteUser = async (req: AuthRequest, res: Response) => {
     } catch (err) {
         console.error("deleteUser error:", err);
     return res.status(500).json({ status: "error", message: "Error interno" });
+    }
+};
+
+/**
+ * Deshabilitar usuario (alias para deleteUser)
+ */
+export const disableUser = deleteUser;
+
+/**
+ * Obtener usuario por ID (alias para getUser)
+ */
+export const getUserById = getUser;
+
+/**
+ * Listar usuarios con paginación
+ */
+export const getUsers = async (req: AuthRequest, res: Response) => {
+    try {
+        const {
+            page = "1",
+            limit = "10",
+            includeDisabled = "false"
+        } = req.query as Record<string, string>;
+
+        const filter: any = {};
+        if (includeDisabled !== "true") filter.enabled = true;
+
+        const pageN = Math.max(1, Number(page));
+        const perPage = Math.max(1, Number(limit));
+        const skip = (pageN - 1) * perPage;
+
+        const total = await UserModel.countDocuments(filter);
+        const docs = await UserModel.find(filter).select("-password").skip(skip).limit(perPage);
+
+        return res.json({
+            status: "success",
+            message: "Lista de usuarios",
+            resultado: {
+                data: docs,
+                meta: {
+                    page: pageN,
+                    perPage,
+                    total,
+                    totalPages: Math.ceil(total / perPage)
+                }
+            }
+        });
+    } catch (err) {
+        console.error("getUsers error:", err);
+        return res.status(500).json({ status: "error", message: "Error interno" });
+    }
+};
+
+/**
+ * Obtener historial de reservas de un usuario
+ */
+export const getUserReservations = async (req: AuthRequest, res: Response) => {
+    try {
+        const id = req.params.id;
+        const userId = req.user?.id;
+
+        // Solo el mismo usuario o un admin puede ver el historial
+        if (id !== userId && !req.user?.roles.includes("ADMIN")) {
+            return res.status(403).json({ status: "error", message: "No tienes permisos para ver este historial" });
+        }
+
+        const user = await UserModel.findById(id).populate("reservas.bookId", "titulo autor");
+        if (!user || !user.enabled) {
+            return res.status(404).json({ status: "error", message: "Usuario no encontrado" });
+        }
+
+        const historial = user.reservas.map(reserva => ({
+            libro: {
+                id: reserva.bookId,
+                titulo: (reserva.bookId as any)?.titulo || "Libro eliminado",
+                autor: (reserva.bookId as any)?.autor || "N/A"
+            },
+            fechaReserva: reserva.reservadoAt,
+            fechaEntrega: reserva.entregaAt || null
+        }));
+
+        return res.json({
+            status: "success",
+            message: "Historial de reservas",
+            resultado: historial
+        });
+    } catch (err) {
+        console.error("getUserReservations error:", err);
+        return res.status(500).json({ status: "error", message: "Error interno" });
     }
 };
