@@ -1,31 +1,39 @@
 import { Router } from "express";
 import {
-    createUser,
+    registerUser,
+    loginUser,
     getUsers,
     getUserById,
     updateUser,
     disableUser,
     deleteUser,
+    getUserReservations,
 } from "../controllers/user.controller";
 
-import authMiddleware from "../middlewares/auth.middleware";
-import permMiddleware from "../middlewares/perm.middleware";
+import { authMiddleware } from "../middlewares/auth.middleware";
+import { permitRoles } from "../middlewares/perm.middleware";
 import enableMiddleware from "../middlewares/enable.middleware";
 
 const router = Router();
 
-// Simulación de autenticación
+// Rutas públicas (sin autenticación)
+router.post("/register", registerUser);
+router.post("/login", loginUser);
+
+// Rutas protegidas (requieren autenticación)
 router.use(authMiddleware);
 router.use(enableMiddleware);
 
 // Rutas principales
-router.post("/", permMiddleware(["ADMIN"]), createUser);
 router.get("/", getUsers);
-router.get("/:id", getUserById);
-router.put("/:id", permMiddleware(["ADMIN"]), updateUser);
-router.delete("/:id", permMiddleware(["ADMIN"]), deleteUser);
 
-// Deshabilitar usuario
-router.post("/:id/disable", permMiddleware(["ADMIN"]), disableUser);
+// Rutas específicas primero (antes de las genéricas con :id)
+router.get("/:id/reservations", getUserReservations);
+router.post("/:id/disable", disableUser);
+
+// Rutas genéricas al final
+router.get("/:id", getUserById);
+router.put("/:id", updateUser);
+router.delete("/:id", deleteUser);
 
 export default router;
