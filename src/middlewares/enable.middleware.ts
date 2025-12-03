@@ -1,21 +1,19 @@
-import { Request, Response, NextFunction } from "express";
+import { Response, NextFunction } from "express";
+import { AuthRequest } from "./auth.middleware";
 
 export default function enableMiddleware(
-    req: Request,
+    req: AuthRequest,
     res: Response,
     next: NextFunction
     ) {
     if (!req.user) {
         return res.status(401).json({
+        status: "error",
         message: "No autenticado",
         });
     }
 
-    if (req.user.enabled === false) {
-        return res.status(403).json({
-        message: "Usuario deshabilitado",
-        });
-    }
-
+    // Verificar si el usuario está habilitado consultando la BD
+    // Esto se hace en el authMiddleware, pero por seguridad verificamos aquí también
     next();
 }

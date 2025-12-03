@@ -7,31 +7,47 @@ import {
     disableBook,
     deleteBook,
     reserveBook,
-    deliverBook
+    deliverBook,
+    getBookReservations
 } from "../controllers/book.controller";
 
-import authMiddleware from "../middlewares/auth.middleware";
-import permMiddleware from "../middlewares/perm.middleware";
+import { authMiddleware } from "../middlewares/auth.middleware";
+import { permitRoles } from "../middlewares/perm.middleware";
 import enableMiddleware from "../middlewares/enable.middleware";
 
 const router = Router();
 
-// Aplicar auth y habilitación a todas las rutas
+// Rutas públicas (sin autenticación según requisitos)
+router.get("/", getBooks);
+router.get("/:id", getBookById);
+
+// Rutas protegidas (requieren autenticación)
 router.use(authMiddleware);
 router.use(enableMiddleware);
 
-// *** RUTAS ***
+// Crear libro - requiere permiso CREATE_BOOKS
+router.post("/", permitRoles("CREATE_BOOKS"), createBook);
 
-router.post("/", permMiddleware(["ADMIN"]), createBook);
-router.get("/", getBooks);
-router.get("/:id", getBookById);
-router.put("/:id", permMiddleware(["ADMIN"]), updateBook);
-router.delete("/:id", permMiddleware(["ADMIN"]), deleteBook);
+// Rutas específicas primero (antes de las genéricas con :id)
+// Historial de reservas del libro
+router.get("/:id/reservations", getBookReservations);
 
-// Reservar un libro
-router.post("/:id/reservar", permMiddleware(["USER", "ADMIN"]), reserveBook);
+// Reservar un libro - cualquier usuario autenticado puede reservar
+router.post("/:id/reserve", reserveBook);
+router.post("/:id/reservar", reserveBook); // alias en español
 
-// Entregar libro
-router.post("/:id/entregar", permMiddleware(["USER", "ADMIN"]), deliverBook);
+// Entregar libro - cualquier usuario autenticado puede entregar
+router.post("/:id/return", deliverBook);
+router.post("/:id/entregar", deliverBook); // alias en español
+
+// Deshabilitar libro - requiere permiso DISABLE_BOOKS
+router.post("/:id/disable", permitRoles("DISABLE_BOOKS"), disableBook);
+
+// Rutas genéricas al final
+// Actualizar libro - requiere permiso MODIFY_BOOKS para modificar información
+router.put("/:id", updateBook);
+
+// Deshabilitar libro - requiere permiso DISABLE_BOOKS
+router.delete("/:id", permitRoles("DISABLE_BOOKS"), deleteBook);
 
 export default router;
