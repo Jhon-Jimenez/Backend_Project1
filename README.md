@@ -132,11 +132,6 @@ JWT_SECRET=tu_secreto_jwt_muy_seguro_aqui_cambiar_en_produccion
 PORT=8080
 ```
 
-** A tener en cuenta:**
-- El archivo `.env` está en `.gitignore` y **NO se sube al repositorio**
-- Los valores mostrados son **ejemplos/placeholders**, no secretos reales
-- Debes cambiar `JWT_SECRET` por un secreto seguro y único para tu proyecto
-
 ### 4. Iniciar MongoDB
 
 **Windows:**
